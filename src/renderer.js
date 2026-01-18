@@ -41,11 +41,19 @@ const thresholdValue = document.getElementById('threshold-value');
 const testVoiceInput = document.getElementById('test-voice-input');
 const testVoiceBtn = document.getElementById('test-voice-btn');
 
+// Test mode elements
+const testModeBanner = document.getElementById('test-mode-banner');
+const testModeCheckbox = document.getElementById('test-mode');
+const rateLimitSlider = document.getElementById('rate-limit-slider');
+const rateLimitValue = document.getElementById('rate-limit-value');
+const toastContainer = document.getElementById('toast-container');
+
 // Command filter buttons
 const filterBtns = document.querySelectorAll('.filter-btn');
 
 // State
 let isListening = false;
+let isTestMode = false;
 let voiceCommands = [];
 const commandHistory = [];
 const MAX_LOG_ENTRIES = 15;
@@ -86,10 +94,102 @@ async function initialize() {
   const permissionStatus = await window.electronAPI.getPermissionStatus();
   updatePermissionUI(permissionStatus);
 
+  // Listen for test mode changes from tray menu
+  window.electronAPI.onTestModeChanged((enabled) => {
+    isTestMode = enabled;
+    testModeCheckbox.checked = enabled;
+    updateTestModeUI();
+  });
+
+  // Listen for command execution notifications
+  window.electronAPI.onCommandExecuted((result) => {
+    if (showNotifications.checked) {
+      showToast(result);
+    }
+  });
+
+  // Get initial test mode state
+  isTestMode = await window.electronAPI.getTestMode();
+  testModeCheckbox.checked = isTestMode;
+  updateTestModeUI();
+
+  // Get initial rate limit
+  const rateLimit = await window.electronAPI.getRateLimit();
+  rateLimitSlider.value = rateLimit;
+  rateLimitValue.textContent = `${rateLimit}ms`;
+
   // Load saved settings
   loadSettings();
 
   console.log('Zwift Voice Control UI initialized');
+}
+
+/**
+ * Update test mode UI
+ */
+function updateTestModeUI() {
+  if (isTestMode) {
+    testModeBanner.classList.add('visible');
+  } else {
+    testModeBanner.classList.remove('visible');
+  }
+}
+
+/**
+ * Show a toast notification
+ */
+function showToast(result) {
+  const toast = document.createElement('div');
+
+  let toastClass = 'toast';
+  let icon = '✓';
+  let title = result.description || result.key;
+  let message = '';
+
+  if (result.testMode) {
+    toastClass += ' test-mode';
+    icon = '🧪';
+    message = `Would press <span class="toast-key">${result.key.toUpperCase()}</span>`;
+  } else if (result.queued) {
+    toastClass += ' queued';
+    icon = '⏳';
+    message = `Queued (position ${result.queuePosition})`;
+  } else if (result.success) {
+    toastClass += ' success';
+    icon = '✓';
+    message = `Pressed <span class="toast-key">${result.key.toUpperCase()}</span>`;
+  } else {
+    toastClass += ' error';
+    icon = '✗';
+    message = result.error || 'Failed to execute';
+  }
+
+  const time = new Date().toLocaleTimeString('en-US', {
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false
+  });
+
+  toast.className = toastClass;
+  toast.innerHTML = `
+    <span class="toast-icon">${icon}</span>
+    <div class="toast-content">
+      <span class="toast-title">${title}</span>
+      <span class="toast-message">${message}</span>
+    </div>
+    <span class="toast-time">${time}</span>
+  `;
+
+  toastContainer.appendChild(toast);
+
+  // Auto-dismiss after 2 seconds
+  setTimeout(() => {
+    toast.classList.add('hiding');
+    setTimeout(() => {
+      toast.remove();
+    }, 300);
+  }, 2000);
 }
 
 /**
@@ -360,7 +460,30 @@ function setupEventListeners() {
 
   // General settings
   launchStartup.addEventListener('change', saveSettings);
-  showNotifications.addEventListener('change', saveSettings);
+  showNotifications.addEventListener('change', () => {
+    window.electronAPI.setNotificationsEnabled(showNotifications.checked);
+    saveSettings();
+  });
+
+  // Test mode toggle
+  testModeCheckbox.addEventListener('change', () => {
+    isTestMode = testModeCheckbox.checked;
+    window.electronAPI.setTestMode(isTestMode);
+    updateTestModeUI();
+    saveSettings();
+  });
+
+  // Rate limit slider
+  rateLimitSlider.addEventListener('input', () => {
+    const value = rateLimitSlider.value;
+    rateLimitValue.textContent = `${value}ms`;
+  });
+
+  rateLimitSlider.addEventListener('change', () => {
+    const value = parseInt(rateLimitSlider.value, 10);
+    window.electronAPI.setRateLimit(value);
+    saveSettings();
+  });
 
   // Permission buttons
   micPermissionBtn.addEventListener('click', async () => {
@@ -608,6 +731,18 @@ function loadSettings() {
     confidenceSlider.value = threshold;
     thresholdValue.textContent = `${threshold}%`;
 
+    // Test mode and rate limit (these are also synced from main process)
+    if (settings.testMode !== undefined) {
+      testModeCheckbox.checked = settings.testMode;
+      isTestMode = settings.testMode;
+      updateTestModeUI();
+    }
+
+    if (settings.rateLimit !== undefined) {
+      rateLimitSlider.value = settings.rateLimit;
+      rateLimitValue.textContent = `${settings.rateLimit}ms`;
+    }
+
     // Apply to voice recognition
     if (voiceRecognition) {
       voiceRecognition.setThreshold(threshold / 100);
@@ -626,7 +761,9 @@ function saveSettings() {
     launchStartup: launchStartup.checked,
     showNotifications: showNotifications.checked,
     trainerMode: trainerMode.checked,
-    confidenceThreshold: parseInt(confidenceSlider.value, 10)
+    confidenceThreshold: parseInt(confidenceSlider.value, 10),
+    testMode: testModeCheckbox.checked,
+    rateLimit: parseInt(rateLimitSlider.value, 10)
   };
 
   try {

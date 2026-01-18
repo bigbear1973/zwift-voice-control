@@ -19,6 +19,12 @@
 
     <!-- Main content -->
     <main class="content">
+      <!-- Test Mode Banner -->
+      <div class="test-mode-banner" id="test-mode-banner">
+        <span class="test-mode-icon">🧪</span>
+        <span class="test-mode-text">TEST MODE ACTIVE - No keystrokes will be sent</span>
+      </div>
+
       <!-- Status Section -->
       <section class="section status-section">
         <div class="status-left">
@@ -131,6 +137,24 @@
             <span>Show command notifications</span>
           </label>
         </div>
+
+        <div class="setting-row test-mode-row">
+          <label class="setting-label">
+            <input type="checkbox" id="test-mode" />
+            <span>Test Mode (log commands but don't send keystrokes)</span>
+          </label>
+        </div>
+
+        <div class="setting-row slider-row">
+          <label class="setting-label">
+            <span>Rate Limit: <strong id="rate-limit-value">300ms</strong></span>
+          </label>
+          <input type="range" id="rate-limit-slider" min="100" max="1000" value="300" step="50" class="slider" />
+          <div class="slider-labels">
+            <span>Faster (100ms)</span>
+            <span>Safer (1000ms)</span>
+          </div>
+        </div>
       </section>
 
       <!-- Test Section -->
@@ -200,6 +224,9 @@
       <span>macOS only • Windows coming in v2.0</span>
     </footer>
   </div>
+
+  <!-- Toast notification container -->
+  <div class="toast-container" id="toast-container"></div>
 
   <script src="renderer.js"></script>
 </body>

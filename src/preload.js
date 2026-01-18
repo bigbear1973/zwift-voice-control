@@ -50,6 +50,25 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.on('permission-status', (event, status) => callback(status));
   },
 
+  // Test mode and keyboard settings
+  getTestMode: () => ipcRenderer.invoke('get-test-mode'),
+  setTestMode: (enabled) => ipcRenderer.send('set-test-mode', enabled),
+  getNotificationsEnabled: () => ipcRenderer.invoke('get-notifications-enabled'),
+  setNotificationsEnabled: (enabled) => ipcRenderer.send('set-notifications-enabled', enabled),
+  getRateLimit: () => ipcRenderer.invoke('get-rate-limit'),
+  setRateLimit: (ms) => ipcRenderer.send('set-rate-limit', ms),
+  getKeyboardConfig: () => ipcRenderer.invoke('get-keyboard-config'),
+  getCommandHistory: () => ipcRenderer.invoke('get-command-history'),
+  clearCommandHistory: () => ipcRenderer.send('clear-command-history'),
+
+  // Test mode and command execution events
+  onTestModeChanged: (callback) => {
+    ipcRenderer.on('test-mode-changed', (event, enabled) => callback(enabled));
+  },
+  onCommandExecuted: (callback) => {
+    ipcRenderer.on('command-executed', (event, result) => callback(result));
+  },
+
   // Cleanup
   removeAllListeners: () => {
     ipcRenderer.removeAllListeners('listening-state-changed');
@@ -59,5 +78,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.removeAllListeners('voice-no-match');
     ipcRenderer.removeAllListeners('voice-error');
     ipcRenderer.removeAllListeners('permission-status');
+    ipcRenderer.removeAllListeners('test-mode-changed');
+    ipcRenderer.removeAllListeners('command-executed');
   }
 });

@@ -298,6 +298,19 @@ function buildTrayMenu() {
         }
       }
     },
+    {
+      label: keyboard && keyboard.isTestMode() ? '✓ Test Mode (No Keystrokes)' : 'Test Mode (No Keystrokes)',
+      click: () => {
+        if (keyboard) {
+          const newMode = !keyboard.isTestMode();
+          keyboard.setTestMode(newMode);
+          updateTrayState();
+          if (settingsWindow) {
+            settingsWindow.webContents.send('test-mode-changed', newMode);
+          }
+        }
+      }
+    },
     { type: 'separator' },
     {
       label: 'Quit',
@@ -424,9 +437,14 @@ ipcMain.handle('test-keyboard', async (event, key) => {
 // Execute a specific key
 ipcMain.handle('execute-command', async (event, key) => {
   if (keyboard) {
-    return keyboard.pressKey(key);
+    const result = await keyboard.simulateKey(key);
+    // Send notification to renderer
+    if (settingsWindow && result) {
+      settingsWindow.webContents.send('command-executed', result);
+    }
+    return result;
   }
-  return false;
+  return { success: false, error: 'Keyboard module not loaded' };
 });
 
 // Get keyboard commands
@@ -435,6 +453,78 @@ ipcMain.handle('get-commands', () => {
     return keyboard.getCommands();
   }
   return {};
+});
+
+// Test mode handlers
+ipcMain.handle('get-test-mode', () => {
+  if (keyboard) {
+    return keyboard.isTestMode();
+  }
+  return false;
+});
+
+ipcMain.on('set-test-mode', (event, enabled) => {
+  if (keyboard) {
+    keyboard.setTestMode(enabled);
+    console.log(`Test mode ${enabled ? 'enabled' : 'disabled'}`);
+    // Update tray menu
+    updateTrayState();
+  }
+});
+
+// Notifications setting
+ipcMain.handle('get-notifications-enabled', () => {
+  if (keyboard) {
+    return keyboard.areNotificationsEnabled();
+  }
+  return true;
+});
+
+ipcMain.on('set-notifications-enabled', (event, enabled) => {
+  if (keyboard) {
+    keyboard.setNotificationsEnabled(enabled);
+  }
+});
+
+// Rate limit setting
+ipcMain.handle('get-rate-limit', () => {
+  if (keyboard) {
+    return keyboard.getRateLimit();
+  }
+  return 300;
+});
+
+ipcMain.on('set-rate-limit', (event, ms) => {
+  if (keyboard) {
+    keyboard.setRateLimit(ms);
+  }
+});
+
+// Get keyboard config
+ipcMain.handle('get-keyboard-config', () => {
+  if (keyboard) {
+    return {
+      config: keyboard.getConfig(),
+      robotjsAvailable: keyboard.isRobotjsAvailable(),
+      queueStatus: keyboard.getQueueStatus()
+    };
+  }
+  return null;
+});
+
+// Get command history
+ipcMain.handle('get-command-history', () => {
+  if (keyboard) {
+    return keyboard.getCommandHistory();
+  }
+  return [];
+});
+
+// Clear command history
+ipcMain.on('clear-command-history', () => {
+  if (keyboard) {
+    keyboard.clearCommandHistory();
+  }
 });
 
 // Get voice commands from voice.js
