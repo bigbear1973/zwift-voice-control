@@ -1,0 +1,62 @@
+{
+  "name": "zwift-voice-control",
+  "productName": "Zwift Voice Control",
+  "version": "1.0.0-beta",
+  "description": "Voice Attack for Mac - Voice control your Zwift rides",
+  "main": "src/main.js",
+  "author": {
+    "name": "Roger Byrne",
+    "email": "roger@example.com"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/rogerbyrne/zwift-voice-control"
+  },
+  "scripts": {
+    "start": "electron .",
+    "dev": "NODE_ENV=development electron .",
+    "build": "electron-builder build --mac",
+    "build:dir": "electron-builder build --mac --dir",
+    "postinstall": "electron-builder install-app-deps"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "electron": "^28.0.0",
+    "electron-builder": "^24.9.1"
+  },
+  "build": {
+    "appId": "com.zwiftvoice.control",
+    "productName": "Zwift Voice Control",
+    "mac": {
+      "category": "public.app-category.utilities",
+      "icon": "assets/icon.icns",
+      "target": [
+        {
+          "target": "dmg",
+          "arch": ["x64", "arm64"]
+        },
+        {
+          "target": "zip",
+          "arch": ["x64", "arm64"]
+        }
+      ],
+      "minimumSystemVersion": "10.13",
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false,
+      "entitlements": "build/entitlements.mac.plist",
+      "entitlementsInherit": "build/entitlements.mac.plist"
+    },
+    "files": [
+      "src/**/*",
+      "assets/**/*"
+    ],
+    "directories": {
+      "output": "dist"
+    }
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "os": ["darwin"]
+}

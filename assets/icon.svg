@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <!-- Microphone icon for Zwift Voice Control - Inactive state -->
+  <defs>
+    <linearGradient id="micGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#666666"/>
+      <stop offset="100%" style="stop-color:#444444"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background circle -->
+  <circle cx="32" cy="32" r="30" fill="#1a1a2e" stroke="#3d3d5c" stroke-width="2"/>
+
+  <!-- Microphone body -->
+  <rect x="24" y="14" width="16" height="26" rx="8" fill="url(#micGradient)"/>
+
+  <!-- Microphone grille lines -->
+  <line x1="26" y1="20" x2="38" y2="20" stroke="#2a2a2a" stroke-width="1.5"/>
+  <line x1="26" y1="25" x2="38" y2="25" stroke="#2a2a2a" stroke-width="1.5"/>
+  <line x1="26" y1="30" x2="38" y2="30" stroke="#2a2a2a" stroke-width="1.5"/>
+
+  <!-- Microphone stand arc -->
+  <path d="M 18 36 Q 18 48, 32 48 Q 46 48, 46 36" fill="none" stroke="#666666" stroke-width="3" stroke-linecap="round"/>
+
+  <!-- Microphone stand vertical -->
+  <line x1="32" y1="48" x2="32" y2="54" stroke="#666666" stroke-width="3" stroke-linecap="round"/>
+
+  <!-- Microphone stand base -->
+  <line x1="24" y1="54" x2="40" y2="54" stroke="#666666" stroke-width="3" stroke-linecap="round"/>
+</svg>

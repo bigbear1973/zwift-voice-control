@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'">
+  <title>Zwift Voice Control - Settings</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app">
+    <!-- Header with drag region for window movement -->
+    <header class="titlebar">
+      <div class="titlebar-drag">
+        <h1>Zwift Voice Control</h1>
+      </div>
+      <span class="version">v1.0.0-beta</span>
+    </header>
+
+    <!-- Main content -->
+    <main class="content">
+      <!-- Status Section -->
+      <section class="section status-section">
+        <div class="status-left">
+          <div class="status-indicator" id="status-indicator">
+            <div class="status-dot"></div>
+            <span class="status-text">Not Listening</span>
+          </div>
+          <div class="audio-level" id="audio-level">
+            <div class="audio-bar"></div>
+            <div class="audio-bar"></div>
+            <div class="audio-bar"></div>
+            <div class="audio-bar"></div>
+            <div class="audio-bar"></div>
+          </div>
+        </div>
+        <button class="btn btn-primary" id="toggle-btn">
+          <span class="btn-icon">🎤</span>
+          Start Listening
+        </button>
+      </section>
+
+      <!-- Voice Feedback Section -->
+      <section class="section voice-feedback-section" id="voice-feedback">
+        <div class="voice-feedback-header">
+          <h2>Voice Recognition</h2>
+          <span class="confidence-badge" id="confidence-badge">--</span>
+        </div>
+
+        <div class="voice-display">
+          <div class="voice-row">
+            <span class="voice-label">Heard:</span>
+            <span class="voice-value" id="voice-heard">--</span>
+          </div>
+          <div class="voice-row">
+            <span class="voice-label">Matched:</span>
+            <span class="voice-value voice-matched" id="voice-matched">--</span>
+          </div>
+          <div class="voice-interim" id="voice-interim"></div>
+        </div>
+
+        <div class="low-confidence-warning" id="low-confidence-warning">
+          <span class="warning-icon">⚠️</span>
+          <span class="warning-text">Did you mean: <strong id="suggested-command"></strong>?</span>
+        </div>
+      </section>
+
+      <!-- Voice Commands Section -->
+      <section class="section">
+        <div class="section-header">
+          <h2>Voice Commands</h2>
+          <div class="command-filter">
+            <button class="filter-btn active" data-priority="all">All</button>
+            <button class="filter-btn" data-priority="1">Racing</button>
+            <button class="filter-btn" data-priority="2">Training</button>
+            <button class="filter-btn" data-priority="3">Other</button>
+          </div>
+        </div>
+        <p class="section-description">Say these phrases while Zwift is active:</p>
+
+        <div class="commands-grid" id="commands-list">
+          <!-- Commands will be populated by JavaScript -->
+        </div>
+      </section>
+
+      <!-- Command Log Section -->
+      <section class="section">
+        <h2>Recent Commands</h2>
+        <div class="command-log" id="command-log">
+          <div class="log-empty">No commands received yet</div>
+        </div>
+      </section>
+
+      <!-- Voice Settings Section -->
+      <section class="section">
+        <h2>Voice Settings</h2>
+
+        <div class="setting-row">
+          <label class="setting-label">
+            <input type="checkbox" id="trainer-mode" />
+            <span>Trainer Mode (higher threshold for noisy environments)</span>
+          </label>
+        </div>
+
+        <div class="setting-row slider-row">
+          <label class="setting-label">
+            <span>Confidence Threshold: <strong id="threshold-value">75%</strong></span>
+          </label>
+          <input type="range" id="confidence-slider" min="50" max="95" value="75" class="slider" />
+          <div class="slider-labels">
+            <span>More sensitive</span>
+            <span>More accurate</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- General Settings Section -->
+      <section class="section">
+        <h2>General Settings</h2>
+
+        <div class="setting-row">
+          <label class="setting-label">
+            <input type="checkbox" id="launch-startup" />
+            <span>Launch at startup</span>
+          </label>
+        </div>
+
+        <div class="setting-row">
+          <label class="setting-label">
+            <input type="checkbox" id="show-notifications" checked />
+            <span>Show command notifications</span>
+          </label>
+        </div>
+      </section>
+
+      <!-- Test Section -->
+      <section class="section">
+        <h2>Test</h2>
+        <p class="section-description">Test voice recognition or keyboard simulation:</p>
+
+        <div class="test-input-row">
+          <input type="text" id="test-voice-input" placeholder="Type a voice command to test..." class="test-input" />
+          <button class="btn btn-secondary" id="test-voice-btn">Test Voice</button>
+        </div>
+
+        <div class="test-buttons">
+          <button class="btn btn-secondary test-btn" data-key="space">Power Up</button>
+          <button class="btn btn-secondary test-btn" data-key="4">Elbow</button>
+          <button class="btn btn-secondary test-btn" data-key="6">Ride On</button>
+          <button class="btn btn-secondary test-btn" data-key="down">U-Turn</button>
+        </div>
+        <p class="test-note" id="test-result"></p>
+      </section>
+
+      <!-- Tips Section -->
+      <section class="section tips-section">
+        <h2>Tips for Best Results</h2>
+        <ul class="tips-list">
+          <li><strong>Use a headset microphone</strong> - Much better than laptop mic</li>
+          <li><strong>Reduce fan noise</strong> - Position fans away from mic if possible</li>
+          <li><strong>Speak clearly</strong> - Slightly louder than normal during races</li>
+          <li><strong>Try Trainer Mode</strong> - If you have high background noise</li>
+          <li><strong>Short commands work best</strong> - "left" instead of "turn left please"</li>
+        </ul>
+      </section>
+
+      <!-- Permissions Section -->
+      <section class="section permissions-section">
+        <h2>Permissions</h2>
+        <div class="permissions-status">
+          <div class="permission-item" id="mic-permission">
+            <div class="permission-info">
+              <span class="permission-icon" id="mic-permission-icon">⏳</span>
+              <div class="permission-details">
+                <strong>Microphone Access</strong>
+                <span class="permission-desc">Required for voice recognition</span>
+              </div>
+            </div>
+            <button class="btn btn-small" id="mic-permission-btn">Grant Access</button>
+          </div>
+          <div class="permission-item" id="accessibility-permission">
+            <div class="permission-info">
+              <span class="permission-icon" id="accessibility-permission-icon">⏳</span>
+              <div class="permission-details">
+                <strong>Accessibility Access</strong>
+                <span class="permission-desc">Required for keyboard simulation</span>
+              </div>
+            </div>
+            <button class="btn btn-small" id="accessibility-permission-btn">Grant Access</button>
+          </div>
+        </div>
+        <button class="btn btn-secondary btn-full" id="recheck-permissions-btn">
+          Re-check Permissions
+        </button>
+      </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <span>macOS only • Windows coming in v2.0</span>
+    </footer>
+  </div>
+
+  <script src="renderer.js"></script>
+</body>
+</html>
